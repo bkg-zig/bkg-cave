@@ -56,6 +56,10 @@ pub enum Error {
     #[error("wasm error: {0}")]
     Wasm(String),
 
+    /// A2A protocol error.
+    #[error("a2a error: {0}")]
+    A2a(String),
+
     /// Generic/fallback error.
     #[error("p2p error: {0}")]
     Other(String),

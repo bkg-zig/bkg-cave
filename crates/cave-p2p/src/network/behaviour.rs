@@ -4,12 +4,6 @@
 //! No values are hardcoded.
 
 use libp2p::{
-    gossipsub::{
-        Behaviour as GossipsubBehaviour, ConfigBuilder as GossipsubConfigBuilder,
-        MessageAuthenticity, ValidationMode,
-    },
-    identify::{Behaviour as IdentifyBehaviour, Config as IdentifyConfig},
-    kad::{store::MemoryStore, Behaviour as KademliaBehaviour},
     request_response::{
         json::Behaviour as JsonBehaviour, Behaviour as RequestResponseBehaviour,
         Config as RequestResponseConfig, ProtocolSupport,
@@ -18,8 +12,12 @@ use libp2p::{
     PeerId, StreamProtocol,
 };
 
+use libp2p::gossipsub::ValidationMode;
+
 use crate::config::P2pConfig;
 use crate::identity::NodeIdentity;
+
+use super::{gossip, identify, kad};
 
 /// Errors that can occur during behaviour setup.
 #[derive(Debug, thiserror::Error)]
@@ -99,20 +97,20 @@ impl Default for BehaviourConfig {
 /// ## Protocols
 ///
 /// - **Kademlia**: DHT for peer routing and provider discovery
-/// - **GossipSub**: Pub/sub for resource manifests, job requests, etc.
+/// - **GossipSub**: Pub/sub for agent communication
 /// - **Identify**: Peer information exchange
 /// - **RequestResponse**: JSON-RPC for A2A protocol
 ///
-/// Note: mDNS is omitted in M2 due to libp2p 0.54 API changes.
-/// It will be re-added in M3 with the correct Provider implementation.
+/// Note: mDNS is omitted in M2 due to libp2p 0.54 API changes requiring
+/// a Tokio runtime context. It will be re-added in a later milestone.
 #[derive(NetworkBehaviour)]
 pub struct CaveBehaviour {
     /// Kademlia DHT behaviour.
-    pub kademlia: KademliaBehaviour<MemoryStore>,
+    pub kademlia: kad::KademliaBehaviour<kad::MemoryStore>,
     /// GossipSub pub/sub behaviour.
-    pub gossipsub: GossipsubBehaviour,
+    pub gossipsub: gossip::GossipsubBehaviour,
     /// Identify protocol behaviour.
-    pub identify: IdentifyBehaviour,
+    pub identify: identify::IdentifyBehaviour,
     /// JSON request-response behaviour for A2A RPC.
     pub a2a_rpc: JsonBehaviour<crate::a2a::A2aRpcRequest, crate::a2a::A2aRpcResponse>,
 }
@@ -120,49 +118,18 @@ pub struct CaveBehaviour {
 impl CaveBehaviour {
     /// Create a new network behaviour from configuration.
     pub fn new(config: BehaviourConfig) -> Result<Self, BehaviourError> {
-        let peer_id = PeerId::from(
-            config
-                .identity
-                .to_libp2p_keypair()
-                .map_err(|e| BehaviourError::Config(e.to_string()))?
-                .public(),
-        );
+        let keypair = config
+            .identity
+            .to_libp2p_keypair()
+            .map_err(|e| BehaviourError::Config(e.to_string()))?;
+        let peer_id = PeerId::from(keypair.public());
+        let public_key = keypair.public();
 
-        // Kademlia (controlled by config)
-        let kademlia = if config.p2p_config.kademlia_enabled {
-            let store = MemoryStore::new(peer_id);
-            KademliaBehaviour::new(peer_id, store)
-        } else {
-            KademliaBehaviour::new(peer_id, MemoryStore::new(peer_id))
-        };
+        let kademlia = kad::create(peer_id, config.p2p_config.kademlia_enabled);
+        let gossipsub = gossip::create(&keypair, config.gossipsub_validation)
+            .map_err(|e| BehaviourError::Config(e.to_string()))?;
+        let identify = identify::create(config.protocol_version, config.agent_version, public_key);
 
-        // GossipSub (controlled by config)
-        let gossipsub = {
-            let keypair = config
-                .identity
-                .to_libp2p_keypair()
-                .map_err(|e| BehaviourError::Config(e.to_string()))?;
-            let gossipsub_config = GossipsubConfigBuilder::default()
-                .validation_mode(config.gossipsub_validation)
-                .build()
-                .map_err(|e| BehaviourError::Config(e.to_string()))?;
-            GossipsubBehaviour::new(MessageAuthenticity::Signed(keypair), gossipsub_config)
-                .map_err(|e| BehaviourError::Config(e.to_string()))?
-        };
-
-        // Identify (controlled by config)
-        let identify = {
-            let keypair = config
-                .identity
-                .to_libp2p_keypair()
-                .map_err(|e| BehaviourError::Config(e.to_string()))?;
-            let public_key = keypair.public();
-            let identify_config = IdentifyConfig::new(config.protocol_version.clone(), public_key)
-                .with_agent_version(config.agent_version.clone());
-            IdentifyBehaviour::new(identify_config)
-        };
-
-        // A2A RPC (request-response)
         let a2a_rpc = RequestResponseBehaviour::new(
             [(
                 StreamProtocol::new("/bkg-p2p/a2a-rpc/1.0.0"),
@@ -198,16 +165,6 @@ mod tests {
         let identity = NodeIdentity::generate().unwrap();
         let mut p2p_config = P2pConfig::default();
         p2p_config.kademlia_enabled = false;
-        let config = BehaviourConfig::new(identity, p2p_config);
-        let behaviour = CaveBehaviour::new(config);
-        assert!(behaviour.is_ok());
-    }
-
-    #[test]
-    fn behaviour_with_mdns_disabled() {
-        let identity = NodeIdentity::generate().unwrap();
-        let mut p2p_config = P2pConfig::default();
-        p2p_config.mdns_enabled = false;
         let config = BehaviourConfig::new(identity, p2p_config);
         let behaviour = CaveBehaviour::new(config);
         assert!(behaviour.is_ok());

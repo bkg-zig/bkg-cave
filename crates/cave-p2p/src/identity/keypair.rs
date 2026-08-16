@@ -55,7 +55,7 @@ impl NodeKeypair {
     pub fn verify(message: &[u8], signature: &[u8; 64], public_key: &[u8; 32]) -> Result<()> {
         let verifying_key = VerifyingKey::from_bytes(public_key)
             .map_err(|e| IdentityError::InvalidKeypair(e.to_string()))?;
-        let sig = Signature::from_bytes(signature.into());
+        let sig = Signature::from_bytes(signature);
         verifying_key
             .verify(message, &sig)
             .map_err(|_| IdentityError::SignatureVerification)?;

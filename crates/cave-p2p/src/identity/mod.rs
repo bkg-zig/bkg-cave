@@ -82,7 +82,7 @@ impl NodeIdentity {
 
     /// Get the node ID as a string (Base58-encoded).
     pub fn node_id_string(&self) -> String {
-        self.node_id.to_string()
+        self.node_id.to_base58()
     }
 
     /// Get the public key bytes (32 bytes).
@@ -210,6 +210,6 @@ mod tests {
         let id1 = NodeId::from_public_key(&kp.public_key());
         let id2 = NodeId::from_public_key(&kp.public_key());
         assert_eq!(id1, id2);
-        assert_eq!(id1.to_string(), id2.to_string());
+        assert_eq!(id1.to_base58(), id2.to_base58());
     }
 }

@@ -39,7 +39,7 @@ impl NodeId {
     }
 
     /// Get the string representation (Base58-encoded).
-    pub fn to_string(&self) -> String {
+    pub fn to_base58(&self) -> String {
         bs58::encode(self.inner).into_string()
     }
 
@@ -63,19 +63,19 @@ impl NodeId {
 
 impl std::fmt::Display for NodeId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.to_string())
+        write!(f, "{}", self.to_base58())
     }
 }
 
 impl PartialEq<str> for NodeId {
     fn eq(&self, other: &str) -> bool {
-        self.to_string() == other
+        self.to_base58() == other
     }
 }
 
 impl PartialEq<NodeId> for str {
     fn eq(&self, other: &NodeId) -> bool {
-        self == other.to_string()
+        self == other.to_base58()
     }
 }
 
@@ -88,7 +88,7 @@ mod tests {
     fn node_id_from_public_key() {
         let kp = SigningKey::generate(&mut rand::rngs::OsRng);
         let node_id = NodeId::from_public_key(&kp.verifying_key());
-        let s = node_id.to_string();
+        let s = node_id.to_base58();
         assert!(!s.is_empty());
     }
 
@@ -96,7 +96,7 @@ mod tests {
     fn node_id_roundtrip_string() {
         let kp = SigningKey::generate(&mut rand::rngs::OsRng);
         let node_id = NodeId::from_public_key(&kp.verifying_key());
-        let s = node_id.to_string();
+        let s = node_id.to_base58();
         let parsed = NodeId::from_string(&s).unwrap();
         assert_eq!(node_id, parsed);
     }
@@ -123,7 +123,7 @@ mod tests {
         let kp = SigningKey::generate(&mut rand::rngs::OsRng);
         let node_id = NodeId::from_public_key(&kp.verifying_key());
         let s = format!("{}", node_id);
-        assert_eq!(s, node_id.to_string());
+        assert_eq!(s, node_id.to_base58());
     }
 
     #[test]

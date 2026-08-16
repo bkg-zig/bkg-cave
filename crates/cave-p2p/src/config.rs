@@ -105,11 +105,6 @@ pub struct P2pConfig {
     #[serde(default)]
     pub bootstrap_peers: Vec<String>,
 
-    /// Enable mDNS local discovery.
-    /// Default: false (must be explicitly enabled)
-    #[serde(default)]
-    pub mdns_enabled: bool,
-
     /// Enable Kademlia DHT.
     /// Default: false (must be explicitly enabled)
     #[serde(default)]
@@ -225,7 +220,6 @@ mod tests {
 [p2p]
 listen_addresses = ["/ip4/0.0.0.0/tcp/4001"]
 bootstrap_peers = ["/ip4/1.2.3.4/tcp/4001/p2p/12D3KooW"]
-mdns_enabled = true
 kademlia_enabled = true
 advertise_interval_secs = 300
 quic_enabled = false
@@ -249,7 +243,6 @@ path = "/tmp/bkg-cave.redb"
         let config: Config = toml::from_str(toml).unwrap();
         assert_eq!(config.p2p.listen_addresses.len(), 1);
         assert_eq!(config.p2p.bootstrap_peers.len(), 1);
-        assert!(config.p2p.mdns_enabled);
         assert!(config.web.enabled);
         assert_eq!(config.web.listen_addr, "127.0.0.1:8080");
         assert_eq!(config.resources.cpu_cores, 8);
@@ -263,7 +256,6 @@ path = "/tmp/bkg-cave.redb"
         assert!(config.p2p.bootstrap_peers.is_empty());
         assert!(!config.p2p.tcp_enabled);
         assert!(!config.p2p.quic_enabled);
-        assert!(!config.p2p.mdns_enabled);
         assert!(!config.p2p.kademlia_enabled);
         assert!(config.web.listen_addr.is_empty());
         assert!(!config.web.enabled);

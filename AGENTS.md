@@ -1,76 +1,107 @@
-# OpenCode Agent Rules
+# bkg-cave Agent Rules
 
-## Arbeitsbereich
+## Gültigkeitsbereich
 
-Dieser Agent arbeitet ausschließlich innerhalb dieses Verzeichnisses:
+Diese Datei definiert die verbindlichen Regeln für alle Coding-Agenten innerhalb des Projekts bkg-cave.
+
+Projektpfad:
+
+/home/workspace/work/alpha/bkg-cave
+
+---
+
+# Grundregel
+
+Jeder Agent darf ausschließlich innerhalb seines zugewiesenen Arbeitsverzeichnisses arbeiten.
+
+Ein Agent darf niemals Dateien außerhalb seines Arbeitsbereichs verändern.
+
+---
+
+# Agenten-Arbeitsbereiche
+
+## OpenCode Agent
+
+Arbeitsbereich:
 
 /home/workspace/work/alpha/bkg-cave/docs/agents/opencode/code
 
----
+Erlaubt:
 
-## Erlaubte Aktionen
+* Dateien lesen
+* Dateien erstellen
+* Dateien ändern
+* Tests und Hilfsskripte innerhalb dieses Ordners ausführen
 
-Der OpenCode Agent darf:
+Nicht erlaubt:
 
-* Dateien innerhalb dieses Ordners lesen
-* Dateien innerhalb dieses Ordners erstellen
-* Dateien innerhalb dieses Ordners ändern
-* Dokumentationen, Pläne und Code-Artefakte innerhalb dieses Ordners pflegen
-
----
-
-## Harte Grenze
-
-Der OpenCode Agent darf niemals außerhalb dieses Ordners Änderungen durchführen.
-
-Verboten:
-
-* Änderungen an `/home/workspace/work/alpha/bkg-cave/crates/`
-* Änderungen an `/home/workspace/work/alpha/bkg-cave/src/`
-* Änderungen an Cargo-Dateien außerhalb dieses Ordners
+* Änderungen außerhalb dieses Ordners
+* Änderungen an crates/
+* Änderungen an src/
+* Änderungen an Cargo-Dateien
 * Änderungen an Projektkonfigurationen außerhalb dieses Ordners
-* Änderungen an anderen Agenten-Verzeichnissen
 
 ---
 
-## Lesen außerhalb des Arbeitsbereichs
+## Kilo Agent
 
-Lesen außerhalb dieses Ordners ist nur erlaubt, wenn es für Analyse oder Verständnis notwendig ist.
+Arbeitsbereich:
 
-Änderungen außerhalb bleiben verboten.
+/home/workspace/work/alpha/bkg-cave/docs/agents/kilo/code
 
----
+Erlaubt:
 
-## Architekturregeln
+* Dateien lesen
+* Dateien erstellen
+* Dateien ändern
+* Tests und Hilfsskripte innerhalb dieses Ordners ausführen
 
-Der OpenCode Agent:
+Nicht erlaubt:
 
-* erfindet keine neue Architektur
-* ändert keine Projektentscheidungen eigenständig
-* ersetzt keine bestehenden Pläne ohne Freigabe
-* dokumentiert Erkenntnisse statt sie ungefragt umzusetzen
-
----
-
-## Aufgabenbereich
-
-OpenCode dient für:
-
-* Analyse
-* Planung
-* technische Dokumentation
-* vorbereitende Code-Arbeiten innerhalb dieses Ordners
-* Architekturvergleich
-* Referenzanalyse
+* Änderungen außerhalb dieses Ordners
+* Änderungen an crates/
+* Änderungen an src/
+* Änderungen an Cargo-Dateien
+* Änderungen an Projektkonfigurationen außerhalb dieses Ordners
 
 ---
 
-## Sicherheit
+# Verbotene Aktionen
 
-Bei Unsicherheit:
+Agenten dürfen nicht:
 
-* keine Änderung außerhalb des Ordners durchführen
-* Änderung dokumentieren
-* Freigabe abwarten
+* nach oben aus ihrem Arbeitsverzeichnis wechseln und dort Dateien bearbeiten
+* Projektdateien außerhalb ihres Ordners erzeugen
+* bestehende Architekturentscheidungen selbstständig ändern
+* neue Arbeitsbereiche anlegen
+* andere Agenten-Verzeichnisse verändern
 
-Der Arbeitsbereich ist eine geschützte Zone.
+---
+
+# Architekturänderungen
+
+Architekturentscheidungen erfolgen ausschließlich über die Projektplanung.
+
+Coding-Agenten setzen nur freigegebene Aufgaben um.
+
+Keine eigenständigen Umstrukturierungen.
+
+---
+
+# Änderungen außerhalb des Bereichs
+
+Falls eine Aufgabe Änderungen außerhalb des eigenen Arbeitsbereichs benötigt:
+
+1. Änderung dokumentieren
+2. Grund beschreiben
+3. Freigabe einholen
+4. Erst danach ändern
+
+---
+
+# Ziel
+
+bkg-cave bleibt kontrolliert, nachvollziehbar und reproduzierbar.
+
+Jeder Agent besitzt einen klar abgegrenzten Arbeitsbereich.
+Keine stillen Änderungen außerhalb der vorgesehenen Zone.
