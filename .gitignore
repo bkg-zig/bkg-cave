@@ -1,0 +1,13 @@
+node_modules
+package.json
+package-lock.json
+bun.lock
+.gitignore
+.slim/deepwork/
+docs/agents/*
+target/*
+references/*/upstream
+.opencode
+
+.claude/
+.claude-tower/
