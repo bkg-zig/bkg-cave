@@ -1,0 +1,21 @@
+[package]
+name = "cave"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+cave-core = { path = "../cave-core" }
+cave-surge = { path = "../cave-surge" }
+cave-kindle = { path = "../cave-kindle" }
+cave-forge = { path = "../cave-forge" }
+clap.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+anyhow.workspace = true
+libloading = { version = "0.8", optional = true }
+notify = { version = "6", optional = true, features = ["macos_kqueue"] }
+
+[features]
+default = ["dynamic"]
+dynamic = ["libloading", "notify"]
